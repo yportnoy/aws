@@ -282,8 +282,9 @@ def mount_device(raid_dev, mount_point, mount_point_owner, mount_point_group, mo
       end
 
       Chef::Log.info("Found #{md_device}")
-
+      Chef::Log.info("Running: mount -t #{filesystem} -o #{filesystem_options} #{md_device} #{mount_point}")
       # the mountpoint must be determined dynamically, so I can't use the chef mount
+
       system("mount -t #{filesystem} -o #{filesystem_options} #{md_device} #{mount_point}")
     end
   end
