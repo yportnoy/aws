@@ -257,11 +257,21 @@ def assemble_raid(raid_dev, devices_string)
   Chef::Log.info("grep: #{`mdadm -E --scan`}")
   Chef::Log.debug("grep: #{`mdadm -E --scan`}")
   puts "grep: #{`mdadm -E --scan`}"
-
-  execute "re-attaching raid device" do
-    command "mdadm -A --uuid=`mdadm -E --scan|egrep '#{raid_dev}|#{raid_dev.gsub(/(\d+)/,"/\\1")}'|egrep -o 'UUID=([^\s]+)'|sed -s 's/UUID=//g'` #{raid_dev} #{devices_string}"
-    # mdadm may return 2 but still return a clean raid device.
-    returns [0, 2]
+  
+  uuid = system("mdadm -E --scan|egrep '#{raid_dev}|#{raid_dev.gsub(/(\d+)/,"/\\1")}'|egrep -o 'UUID=([^\s]+)'|sed -s 's/UUID=//g'")
+  
+  if uuid 
+    execute "re-attaching raid device" do
+      command "mdadm -A --uuid=#{uuid} #{raid_dev} #{devices_string}"
+      # mdadm may return 2 but still return a clean raid device.
+      returns [0, 2]
+    end
+  else
+    execute "re-attaching raid device" do
+      command "mdadm -A #{raid_dev} #{devices_string}"
+      # mdadm may return 2 but still return a clean raid device.
+      returns [0, 2]
+    end
   end
 end
 
