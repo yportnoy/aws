@@ -289,7 +289,7 @@ def mount_device(raid_dev, mount_point, mount_point_owner, mount_point_group, mo
       md_device = nil
       Dir.glob("/dev/md[0-9]*").each do |dir|
         Chef::Log.error("More than one /dev/mdX found.") unless md_device.nil?
-        md_device = dir if dir == raid_dev
+        md_device = dir if dir.include? raid_dev
       end
 
       Chef::Log.info("Found #{md_device}")
@@ -394,7 +394,7 @@ def create_raid_disks(mount_point, mount_point_owner, mount_point_group, mount_p
         md_device = nil
         Dir.glob("/dev/md[0-9]*").each do |dir|
           Chef::Log.error("More than one /dev/mdX found.") unless md_device.nil?
-          md_device = dir
+          md_device = dir if dir.include? raid_dev
         end
 
         Chef::Log.info("Format device found: #{md_device}")
