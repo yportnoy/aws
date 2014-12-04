@@ -251,24 +251,17 @@ def assemble_raid(raid_dev, devices_string)
   # within the superblock metadata, causing the md_device number to be randomly
   # chosen if restore is happening on a different host
 
-
-  Chef::Log.info("*************************************************")
-  Chef::Log.debug("************************************************")
-  Chef::Log.info("grep: #{`mdadm -E --scan`}")
-  Chef::Log.debug("grep: #{`mdadm -E --scan`}")
-  puts "grep: #{`mdadm -E --scan`}"
-  
   uuid = system("mdadm -E --scan|egrep '#{raid_dev}|#{raid_dev.gsub(/(\d+)/,"/\\1")}'|egrep -o 'UUID=([^\s]+)'|sed -s 's/UUID=//g'")
   
-  if uuid && !uuid.empty?
-    execute "re-attaching raid device" do
-      command "mdadm -A --uuid=#{uuid} #{raid_dev} #{devices_string}"
+  if !uuid || uuid.empty?
+    execute "attaching raid device" do
+      command "mdadm -A  #{raid_dev} #{devices_string}"
       # mdadm may return 2 but still return a clean raid device.
       returns [0, 2]
     end
   else
     execute "re-attaching raid device" do
-      command "mdadm -A #{raid_dev} #{devices_string}"
+      command "mdadm -A --uuid=#{uuid} #{raid_dev} #{devices_string}"
       # mdadm may return 2 but still return a clean raid device.
       returns [0, 2]
     end
