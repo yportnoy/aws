@@ -260,7 +260,7 @@ def assemble_raid(raid_dev, devices_string)
   
   uuid = system("mdadm -E --scan|egrep '#{raid_dev}|#{raid_dev.gsub(/(\d+)/,"/\\1")}'|egrep -o 'UUID=([^\s]+)'|sed -s 's/UUID=//g'")
   
-  if uuid 
+  if uuid && !uuid.empty?
     execute "re-attaching raid device" do
       command "mdadm -A --uuid=#{uuid} #{raid_dev} #{devices_string}"
       # mdadm may return 2 but still return a clean raid device.
