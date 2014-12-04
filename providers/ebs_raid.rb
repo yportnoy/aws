@@ -289,7 +289,10 @@ def mount_device(raid_dev, mount_point, mount_point_owner, mount_point_group, mo
       md_device = nil
       Dir.glob("/dev/md[0-9]*").each do |dir|
         Chef::Log.error("More than one /dev/mdX found.") unless md_device.nil?
-        md_device = dir if dir.include? raid_dev
+        if ::File.lstat(dir).rdev == ::File.lstat(mount_point).dev
+          md_device = dir
+          break
+        end
       end
 
       Chef::Log.info("Found #{md_device}")
