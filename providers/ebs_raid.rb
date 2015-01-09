@@ -51,9 +51,9 @@ def find_free_volume_device_prefix
 
   begin
     vol_dev = vol_dev.next
-    base_device = "/dev/#{vol_dev}1"
+    base_device = "/dev/#{vol_dev}"
     Chef::Log.info("dev pre trim #{base_device}")
-  end while ( ::File.exists?(base_device) || ::File.exists?("/dev/xv#{vol_dev[1,2]}1") )
+  end while ( ::File.exists?(base_device) || ::File.exists?("/dev/xv#{vol_dev[1,2]}") )
 
   vol_dev
 end
