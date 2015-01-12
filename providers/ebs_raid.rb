@@ -350,26 +350,26 @@ def create_raid_disks(mount_point, mount_point_owner, mount_point_group, mount_p
 
     Chef::Log.info "Snapshot array is #{snapshots[i-1]}"
     creds = aws_creds() # cannot be invoked inside the block
-    aws_ebs_volume disk_dev_path do
+    aws_ebs_volume disk_dev do
       aws_access_key          creds['aws_access_key_id']
       aws_secret_access_key   creds['aws_secret_access_key']
       size                    disk_size
       volume_type             disk_type
       piops                   disk_piops
       device                  "/dev/#{disk_dev}"
-      name                    disk_dev_path
+      name                    disk_dev
       action                  [:create, :attach]
       snapshot_id             creating_from_snapshot ? snapshots[i-1] : ""
       provider                "aws_ebs_volume"
 
       # set up our data bag info
-      devices[disk_dev_path] = "pending"
+      devices[disk_dev] = "pending"
 
-      Chef::Log.info("creating ebs volume for device #{disk_dev_path} with size #{disk_size}")
+      Chef::Log.info("creating ebs volume for device #{disk_dev} with size #{disk_size}")
     end
 
-    Chef::Log.info("attach dev: #{disk_dev_path}")
-    disk_dev = find_free_volume_device_prefix disk_dev
+    Chef::Log.info("attach dev: #{disk_dev}")
+    disk_dev = find_free_volume_device_prefix(disk_dev)
   end
 
   ruby_block "sleeping_#{new_resource.name}" do
