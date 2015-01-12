@@ -45,9 +45,9 @@ private
 
 # AWS's volume attachment interface assumes that we're using
 # sdX style device names.  The ones we actually get will be xvdX
-def find_free_volume_device_prefix
+def find_free_volume_device_prefix(start_dev = nil)
   # Specific to ubuntu 11./12.
-  vol_dev = "sdh"
+  vol_dev = start_dev.nil? ? "sdh" : start_dev
 
   begin
     vol_dev = vol_dev.next
@@ -338,13 +338,15 @@ def create_raid_disks(mount_point, mount_point_owner, mount_point_group, mount_p
   raid_dev = find_free_md_device_name
   Chef::Log.debug("target raid device is #{raid_dev}")
 
+  disk_dev = find_free_volume_device_prefix
+  Chef::Log.debug("vol device prefix is #{disk_dev}")
+
   devices = {}
 
   # For each volume add information to the mount metadata
   (1..num_disks).each do |i|
 
-    disk_dev_path = find_free_volume_device_prefix
-    Chef::Log.debug("vol device prefix is #{disk_dev_path}")
+    disk_dev_path = "/dev/#{disk_dev}"
 
     Chef::Log.info "Snapshot array is #{snapshots[i-1]}"
     creds = aws_creds() # cannot be invoked inside the block
@@ -354,7 +356,7 @@ def create_raid_disks(mount_point, mount_point_owner, mount_point_group, mount_p
       size                    disk_size
       volume_type             disk_type
       piops                   disk_piops
-      device                  "/dev/#{disk_dev_path}"
+      device                  "/dev/#{disk_dev}"
       name                    disk_dev_path
       action                  [:create, :attach]
       snapshot_id             creating_from_snapshot ? snapshots[i-1] : ""
@@ -367,6 +369,7 @@ def create_raid_disks(mount_point, mount_point_owner, mount_point_group, mount_p
     end
 
     Chef::Log.info("attach dev: #{disk_dev_path}")
+    disk_dev = find_free_volume_device_prefix disk_dev
   end
 
   ruby_block "sleeping_#{new_resource.name}" do
