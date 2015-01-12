@@ -322,7 +322,7 @@ def attach_volume(disk_dev, volume_id)
 end
 
 # Mount point for where to mount I.E /mnt/filesystem
-# Diskset      I.E sdi (which creates sdi1-sdi<n>
+# Diskset      I.E sdi (which creates sdi-sdz<n>
 # Raid size.   The total size of the array
 # Raid level.  The raid level to use.
 # Filesystem.  The file system to create.
@@ -335,9 +335,6 @@ def create_raid_disks(mount_point, mount_point_owner, mount_point_group, mount_p
 
   creating_from_snapshot = !(snapshots.nil? || snapshots.size == 0)
 
-  disk_dev = find_free_volume_device_prefix
-  Chef::Log.debug("vol device prefix is #{disk_dev}")
-
   raid_dev = find_free_md_device_name
   Chef::Log.debug("target raid device is #{raid_dev}")
 
@@ -346,7 +343,8 @@ def create_raid_disks(mount_point, mount_point_owner, mount_point_group, mount_p
   # For each volume add information to the mount metadata
   (1..num_disks).each do |i|
 
-    disk_dev_path = "#{disk_dev}#{i}"
+    disk_dev_path = find_free_volume_device_prefix
+    Chef::Log.debug("vol device prefix is #{disk_dev}")
 
     Chef::Log.info "Snapshot array is #{snapshots[i-1]}"
     creds = aws_creds() # cannot be invoked inside the block
