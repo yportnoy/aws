@@ -301,10 +301,10 @@ def mount_device(raid_dev, mount_point, mount_point_owner, mount_point_group, mo
       system("mount -t #{filesystem} -o #{filesystem_options} #{md_device} #{mount_point}")
 
       # because of the above need to add to /etc/fstab manually as well
-      execute "Add #{md_device} to /etc/fstab" do
-        command "echo '#{md_device} #{mount_point} #{filesystem} noatime,nobootwait 0 2' >> /etc/fstab"
-        action :run
-        not_if system("grep #{mount_point} /etc/fstab | grep #{md_device}")
+      Chef::Log.info("Adding #{md_device} to fstab")
+      
+      unless system("grep #{mount_point} /etc/fstab | grep #{md_device}")
+        system("echo '#{md_device} #{mount_point} #{filesystem} noatime,nobootwait 0 2' >> /etc/fstab")
       end
     end
   end
